@@ -85,7 +85,7 @@ class GameViewModel {
         }
     }
 
-    private fun startCountdown() {
+    internal fun startCountdown() {
         countdownJob?.cancel()
         countdownJob = scope.launch {
             for (i in 5 downTo 1) {
@@ -97,7 +97,7 @@ class GameViewModel {
         }
     }
 
-    private fun selectWinner() {
+    internal fun selectWinner() {
         if (_touchPoints.value.isNotEmpty()) {
             _selectedPoint.value = _touchPoints.value.random()
         }

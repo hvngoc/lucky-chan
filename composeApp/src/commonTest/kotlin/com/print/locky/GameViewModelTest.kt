@@ -3,10 +3,9 @@ package com.print.locky
 import kotlin.test.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GameViewModelTest {
@@ -45,16 +44,15 @@ class GameViewModelTest {
         vm.onTouchUp(3) // no effect, just to simulate
         // Start countdown manually for test
         val countdowns = mutableListOf<Int?>()
-        val job = kotlinx.coroutines.launch {
+        val job = this.launch {
             vm.countdown.take(5).toList(countdowns)
         }
-        vm.javaClass.getDeclaredMethod("startCountdown").apply { isAccessible = true }.invoke(vm)
+        vm.startCountdown()
         job.cancel()
         assertTrue(countdowns.contains(5))
         // After countdown, a winner should be selected
-        vm.javaClass.getDeclaredMethod("selectWinner").apply { isAccessible = true }.invoke(vm)
+        vm.selectWinner()
         assertNotNull(vm.selectedPoint.value)
         assertTrue(vm.touchPoints.value.contains(vm.selectedPoint.value))
     }
 }
-
