@@ -26,6 +26,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -52,8 +54,6 @@ import kotlin.math.PI
 import kotlin.math.sin
 import kotlin.random.Random
 import androidx.compose.material3.Text as M3Text
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -67,9 +67,14 @@ fun GameScreen() {
     val textMeasurer = rememberTextMeasurer()
     val haptic = LocalHapticFeedback.current
 
-    // Theme state
-    var isDarkMode by remember { mutableStateOf(false) }
+    // Theme state, persisted
+    var isDarkMode by remember { mutableStateOf(ThemeSettings.isDarkMode()) }
     val colorScheme = if (isDarkMode) darkColorScheme() else lightColorScheme()
+
+    fun toggleTheme() {
+        isDarkMode = !isDarkMode
+        ThemeSettings.setDarkMode(isDarkMode)
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -78,9 +83,18 @@ fun GameScreen() {
         MaterialTheme(colorScheme = colorScheme) {
             Column(modifier = Modifier.fillMaxSize()) {
                 TopAppBar(
-                    title = { M3Text("Lucky Chan") },
+                    title = {
+                        M3Text(
+                            text = "Lucky Chan",
+                            style = TextStyle(
+                                fontSize = 16.sp, // Make it bigger
+                                fontWeight = FontWeight.Bold,
+                                color = if (isDarkMode) Color.White else Color.Black,
+                            )
+                        )
+                    },
                     actions = {
-                        IconButton(onClick = { isDarkMode = !isDarkMode }) {
+                        IconButton(onClick = { toggleTheme() }) {
                             Icon(
                                 imageVector = if (isDarkMode) Icons.Filled.LightMode else Icons.Filled.DarkMode,
                                 contentDescription = if (isDarkMode) "Light Mode" else "Dark Mode"
@@ -125,7 +139,10 @@ fun GameScreen() {
                                 }
                             }
                         }
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
                             M3Text(
                                 text = "Get ready",
                                 modifier = Modifier.graphicsLayer(
@@ -218,7 +235,10 @@ fun GameScreen() {
                                 scale = value
                             }
                         }
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
                             M3Text(
                                 text = count.toString(),
                                 modifier = Modifier.graphicsLayer(
