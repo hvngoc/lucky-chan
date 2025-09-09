@@ -17,8 +17,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBar
@@ -49,6 +52,8 @@ import kotlin.math.PI
 import kotlin.math.sin
 import kotlin.random.Random
 import androidx.compose.material3.Text as M3Text
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
@@ -62,158 +67,172 @@ fun GameScreen() {
     val textMeasurer = rememberTextMeasurer()
     val haptic = LocalHapticFeedback.current
 
+    // Theme state
+    var isDarkMode by remember { mutableStateOf(false) }
+    val colorScheme = if (isDarkMode) darkColorScheme() else lightColorScheme()
+
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
+        color = colorScheme.background
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            TopAppBar(
-                title = { M3Text("Locky") },
-                actions = {
-                    Icon(imageVector = Icons.Filled.Delete,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .padding(all = 8.dp)
-                            .clickable { viewModel.resetGame() })
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Green
+        MaterialTheme(colorScheme = colorScheme) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                TopAppBar(
+                    title = { M3Text("Lucky Chan") },
+                    actions = {
+                        IconButton(onClick = { isDarkMode = !isDarkMode }) {
+                            Icon(
+                                imageVector = if (isDarkMode) Icons.Filled.LightMode else Icons.Filled.DarkMode,
+                                contentDescription = if (isDarkMode) "Light Mode" else "Dark Mode"
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .padding(all = 8.dp)
+                                .clickable { viewModel.resetGame() }
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Cyan
+                    )
                 )
-            )
-            var showGetReady by remember { mutableStateOf(true) }
-            // Hide 'get ready' when at least 1 point is touched
-            LaunchedEffect(touchPoints.size) {
-                showGetReady = touchPoints.isEmpty()
-            }
-            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                // Show 'get ready' if no points
-                if (showGetReady) {
-                    var scale by remember { mutableStateOf(1f) }
-                    LaunchedEffect(Unit) {
-                        while (showGetReady) {
-                            animate(
-                                initialValue = 1f,
-                                targetValue = 1.3f,
-                                animationSpec = tween(durationMillis = 600)
-                            ) { value, _ ->
-                                scale = value
-                            }
-                            animate(
-                                initialValue = 1.3f,
-                                targetValue = 1f,
-                                animationSpec = tween(durationMillis = 600)
-                            ) { value, _ ->
-                                scale = value
+                var showGetReady by remember { mutableStateOf(true) }
+                // Hide 'get ready' when at least 1 point is touched
+                LaunchedEffect(touchPoints.size) {
+                    showGetReady = touchPoints.isEmpty()
+                }
+                Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                    // Show 'get ready' if no points
+                    if (showGetReady) {
+                        var scale by remember { mutableStateOf(1f) }
+                        LaunchedEffect(Unit) {
+                            while (showGetReady) {
+                                animate(
+                                    initialValue = 1f,
+                                    targetValue = 1.3f,
+                                    animationSpec = tween(durationMillis = 600)
+                                ) { value, _ ->
+                                    scale = value
+                                }
+                                animate(
+                                    initialValue = 1.3f,
+                                    targetValue = 1f,
+                                    animationSpec = tween(durationMillis = 600)
+                                ) { value, _ ->
+                                    scale = value
+                                }
                             }
                         }
-                    }
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        M3Text(
-                            text = "Get ready",
-                            modifier = Modifier.graphicsLayer(
-                                scaleX = scale,
-                                scaleY = scale
-                            ),
-                            style = TextStyle(
-                                fontSize = 48.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Gray,
-                                textAlign = TextAlign.Center
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            M3Text(
+                                text = "Get ready",
+                                modifier = Modifier.graphicsLayer(
+                                    scaleX = scale,
+                                    scaleY = scale
+                                ),
+                                style = TextStyle(
+                                    fontSize = 48.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Gray,
+                                    textAlign = TextAlign.Center
+                                )
                             )
-                        )
+                        }
                     }
-                }
 
-                // Touch detection area
-                if (selectedPoint == null) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .pointerInput(Unit) {
-                                awaitPointerEventScope {
-                                    while (true) {
-                                        val event = awaitPointerEvent()
-                                        event.changes.forEach { change ->
-                                            when {
-                                                change.pressed -> {
-                                                    val x = change.position.x
-                                                    val y = change.position.y
-                                                    if (touchPoints.any { point ->
-                                                            val dx = x - point.x
-                                                            val dy = y - point.y
-                                                            kotlin.math.sqrt(dx * dx + dy * dy) < 50.dp.toPx()
-                                                        }) {
-                                                        // Touch is too close to another point
-                                                    } else {
-                                                        viewModel.onTouchDown(
+                    // Touch detection area
+                    if (selectedPoint == null) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .pointerInput(Unit) {
+                                    awaitPointerEventScope {
+                                        while (true) {
+                                            val event = awaitPointerEvent()
+                                            event.changes.forEach { change ->
+                                                when {
+                                                    change.pressed -> {
+                                                        val x = change.position.x
+                                                        val y = change.position.y
+                                                        if (touchPoints.any { point ->
+                                                                val dx = x - point.x
+                                                                val dy = y - point.y
+                                                                kotlin.math.sqrt(dx * dx + dy * dy) < 50.dp.toPx()
+                                                            }) {
+                                                            // Touch is too close to another point
+                                                        } else {
+                                                            viewModel.onTouchDown(
+                                                                change.id.value.toInt(),
+                                                                x,
+                                                                y
+                                                            )
+                                                            haptic.performHapticFeedback(
+                                                                HapticFeedbackType.LongPress
+                                                            )
+                                                        }
+                                                    }
+
+                                                    change.position != change.previousPosition -> {
+                                                        viewModel.onTouchMove(
                                                             change.id.value.toInt(),
-                                                            x,
-                                                            y
-                                                        )
-                                                        haptic.performHapticFeedback(
-                                                            HapticFeedbackType.LongPress
+                                                            change.position.x,
+                                                            change.position.y
                                                         )
                                                     }
-                                                }
 
-                                                change.position != change.previousPosition -> {
-                                                    viewModel.onTouchMove(
-                                                        change.id.value.toInt(),
-                                                        change.position.x,
-                                                        change.position.y
-                                                    )
+                                                    !change.pressed -> {
+                                                        viewModel.onTouchUp(change.id.value.toInt())
+                                                    }
                                                 }
-
-                                                !change.pressed -> {
-                                                    viewModel.onTouchUp(change.id.value.toInt())
-                                                }
+                                                change.consume()
                                             }
-                                            change.consume()
                                         }
                                     }
                                 }
-                            }
-                    )
-                }
-
-                // Draw touch points and animations
-                touchPoints.forEach { point ->
-                    if (selectedPoint == null || point == selectedPoint) {
-                        AnimatedTouchPoint(
-                            point = point,
-                            isSelected = point == selectedPoint,
-                            textMeasurer = textMeasurer
                         )
                     }
-                }
 
-                // Countdown text
-                countdown?.let { count: Int ->
-                    var scale by remember { mutableStateOf(1.5f) }
-                    LaunchedEffect(count) {
-                        scale = 1.5f
-                        animate(
-                            initialValue = 1.5f,
-                            targetValue = 1f,
-                            animationSpec = tween(durationMillis = 900)
-                        ) { value, _ ->
-                            scale = value
+                    // Draw touch points and animations
+                    touchPoints.forEach { point ->
+                        if (selectedPoint == null || point == selectedPoint) {
+                            AnimatedTouchPoint(
+                                point = point,
+                                isSelected = point == selectedPoint,
+                                textMeasurer = textMeasurer
+                            )
                         }
                     }
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        M3Text(
-                            text = count.toString(),
-                            modifier = Modifier.graphicsLayer(
-                                scaleX = scale,
-                                scaleY = scale
-                            ),
-                            style = TextStyle(
-                                fontSize = 180.sp, // Make it bigger
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Black,
-                                textAlign = TextAlign.Center
+
+                    // Countdown text
+                    countdown?.let { count: Int ->
+                        var scale by remember { mutableStateOf(1.5f) }
+                        LaunchedEffect(count) {
+                            scale = 1.5f
+                            animate(
+                                initialValue = 1.5f,
+                                targetValue = 1f,
+                                animationSpec = tween(durationMillis = 900)
+                            ) { value, _ ->
+                                scale = value
+                            }
+                        }
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            M3Text(
+                                text = count.toString(),
+                                modifier = Modifier.graphicsLayer(
+                                    scaleX = scale,
+                                    scaleY = scale
+                                ),
+                                style = TextStyle(
+                                    fontSize = 180.sp, // Make it bigger
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isDarkMode) Color.White else Color.Black,
+                                    textAlign = TextAlign.Center
+                                )
                             )
-                        )
+                        }
                     }
                 }
             }
