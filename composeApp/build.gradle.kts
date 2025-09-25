@@ -1,4 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -29,12 +28,7 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
-
-            implementation(libs.kotlin.test)
-            implementation(libs.androidx.junit.ktx)
-            implementation(libs.androidx.ui.test.junit4)
-            implementation(libs.androidx.espresso.core)
-            implementation(libs.androidx.testExt.junit)
+            implementation(libs.androidx.multidex)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -47,20 +41,19 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.multiplatform.settings)
-
-            implementation(libs.kotlin.test)
-            implementation(libs.androidx.junit.ktx)
-            implementation(libs.androidx.ui.test.junit4)
-            implementation(libs.androidx.espresso.core)
-            implementation(libs.androidx.testExt.junit)
-            implementation(libs.kotlinx.coroutine.test)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+        }
+        androidUnitTest.dependencies {
+            implementation(libs.kotlin.test)
             implementation(libs.androidx.junit.ktx)
+            implementation(libs.androidx.testExt.junit)
+        }
+        androidInstrumentedTest.dependencies {
             implementation(libs.androidx.ui.test.junit4)
             implementation(libs.androidx.espresso.core)
-            implementation(libs.androidx.testExt.junit)
+            implementation(libs.kotlinx.coroutine.test)
         }
     }
 }
@@ -75,6 +68,8 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 100
         versionName = "1.0.0"
+
+        multiDexEnabled = true
     }
     packaging {
         resources {
