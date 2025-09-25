@@ -179,6 +179,11 @@ fun GameScreen() {
                                                                 kotlin.math.sqrt(dx * dx + dy * dy) < 50.dp.toPx()
                                                             }) {
                                                             // Touch is too close to another point
+                                                            viewModel.onTouchMove(
+                                                                change.id.value.toInt(),
+                                                                change.position.x,
+                                                                change.position.y
+                                                            )
                                                         } else {
                                                             viewModel.onTouchDown(
                                                                 change.id.value.toInt(),
@@ -186,7 +191,7 @@ fun GameScreen() {
                                                                 y
                                                             )
                                                             haptic.performHapticFeedback(
-                                                                HapticFeedbackType.LongPress
+                                                                HapticFeedbackType.ContextClick
                                                             )
                                                         }
                                                     }
