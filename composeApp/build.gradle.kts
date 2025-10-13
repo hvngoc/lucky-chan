@@ -44,6 +44,7 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutine.test)
         }
         androidUnitTest.dependencies {
             implementation(libs.kotlin.test)
@@ -54,6 +55,9 @@ kotlin {
             implementation(libs.androidx.ui.test.junit4)
             implementation(libs.androidx.espresso.core)
             implementation(libs.kotlinx.coroutine.test)
+            implementation(libs.androidx.testExt.junit)
+            implementation(libs.junit)
+            implementation(libs.androidx.uiautomator)
         }
     }
 }
@@ -70,6 +74,7 @@ android {
         versionName = "1.0.0"
 
         multiDexEnabled = true
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     packaging {
         resources {
@@ -89,4 +94,5 @@ android {
 
 dependencies {
     debugImplementation(compose.uiTooling)
+    debugImplementation(libs.androidx.ui.test.manifest)
 }
