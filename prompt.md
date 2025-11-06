@@ -20,3 +20,5 @@ Visual & UX:
 Smooth, colorful ring animations for each touch.
 Scale animation for the selected "lucky" touch point.
 Should feel playful, magical, and responsive.
+
+New feature: When no touch points are detected on the screen, display a blinking pointing-finger icon below the text “Get Ready.” This icon should include a visual animation effect to indicate that the user needs to tap the screen

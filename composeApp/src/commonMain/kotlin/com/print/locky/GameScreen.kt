@@ -15,11 +15,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -120,43 +123,7 @@ fun GameScreen() {
                 Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                     // Show 'get ready' if no points
                     if (showGetReady) {
-                        var scale by remember { mutableStateOf(1f) }
-                        LaunchedEffect(Unit) {
-                            while (showGetReady) {
-                                animate(
-                                    initialValue = 1f,
-                                    targetValue = 1.3f,
-                                    animationSpec = tween(durationMillis = 600)
-                                ) { value, _ ->
-                                    scale = value
-                                }
-                                animate(
-                                    initialValue = 1.3f,
-                                    targetValue = 1f,
-                                    animationSpec = tween(durationMillis = 600)
-                                ) { value, _ ->
-                                    scale = value
-                                }
-                            }
-                        }
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            M3Text(
-                                text = "Get ready",
-                                modifier = Modifier.graphicsLayer(
-                                    scaleX = scale,
-                                    scaleY = scale
-                                ),
-                                style = TextStyle(
-                                    fontSize = 48.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.Gray,
-                                    textAlign = TextAlign.Center
-                                )
-                            )
-                        }
+                        EmptyStateView(isDarkMode = isDarkMode)
                     }
 
                     // Touch detection area
@@ -228,40 +195,130 @@ fun GameScreen() {
                     }
 
                     // Countdown text
-                    countdown?.let { count: Int ->
-                        var scale by remember { mutableStateOf(1.5f) }
-                        LaunchedEffect(count) {
-                            scale = 1.5f
-                            animate(
-                                initialValue = 1.5f,
-                                targetValue = 1f,
-                                animationSpec = tween(durationMillis = 900)
-                            ) { value, _ ->
-                                scale = value
-                            }
-                        }
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            M3Text(
-                                text = count.toString(),
-                                modifier = Modifier.graphicsLayer(
-                                    scaleX = scale,
-                                    scaleY = scale
-                                ),
-                                style = TextStyle(
-                                    fontSize = 180.sp, // Make it bigger
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isDarkMode) Color.White else Color.Black,
-                                    textAlign = TextAlign.Center
-                                )
-                            )
-                        }
+                    countdown?.let { count ->
+                        CountdownView(count = count, isDarkMode = isDarkMode)
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun EmptyStateView(isDarkMode: Boolean) {
+    var scale by remember { mutableStateOf(1f) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            animate(
+                initialValue = 1f,
+                targetValue = 1.3f,
+                animationSpec = tween(durationMillis = 600)
+            ) { value, _ ->
+                scale = value
+            }
+            animate(
+                initialValue = 1.3f,
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 600)
+            ) { value, _ ->
+                scale = value
+            }
+        }
+    }
+
+    // Blinking animation for the icon
+    val infiniteTransition = rememberInfiniteTransition()
+    val iconAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 600),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    // Bouncing animation for the icon
+    val iconOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 15f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 600),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            M3Text(
+                text = "Get ready",
+                modifier = Modifier.graphicsLayer(
+                    scaleX = scale,
+                    scaleY = scale
+                ),
+                style = TextStyle(
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center
+                )
+            )
+
+            // Blinking pointing finger icon
+            Icon(
+                imageVector = Icons.Filled.TouchApp,
+                contentDescription = "Tap to start",
+                modifier = Modifier
+                    .padding(top = 30.dp)
+                    .width(60.dp)
+                    .height(60.dp)
+                    .graphicsLayer(
+                        alpha = iconAlpha,
+                        translationY = iconOffset
+                    ),
+                tint = if (isDarkMode) Color.White else Color.DarkGray
+            )
+        }
+    }
+}
+
+@Composable
+private fun CountdownView(count: Int, isDarkMode: Boolean) {
+    var scale by remember { mutableStateOf(1.5f) }
+
+    LaunchedEffect(count) {
+        scale = 1.5f
+        animate(
+            initialValue = 1.5f,
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 900)
+        ) { value, _ ->
+            scale = value
+        }
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        M3Text(
+            text = count.toString(),
+            modifier = Modifier.graphicsLayer(
+                scaleX = scale,
+                scaleY = scale
+            ),
+            style = TextStyle(
+                fontSize = 180.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isDarkMode) Color.White else Color.Black,
+                textAlign = TextAlign.Center
+            )
+        )
     }
 }
 
